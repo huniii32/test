@@ -6,6 +6,9 @@ service before using this script in production.
 """
 
 import re
+from typing import List
+
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
@@ -41,13 +44,31 @@ def clean_text(text: str) -> str:
     return cleaned.strip()
 
 
+def crawl_articles(urls: List[str]) -> List[dict]:
+    """Fetch and clean multiple Naver News articles."""
+    articles = []
+    for url in urls:
+        article = fetch_article(url)
+        article["content"] = clean_text(article.get("content", ""))
+        articles.append(article)
+    return articles
+
+
+def save_to_csv(articles: List[dict], path: str) -> None:
+    """Save article data to a CSV file."""
+    df = pd.DataFrame(articles)
+    df.to_csv(path, index=False)
+
+
 def main():
-    # Example article URL (replace with a real one)
-    url = "https://n.news.naver.com/article/001/0000000000"
-    article = fetch_article(url)
-    article["content"] = clean_text(article.get("content", ""))
-    for key, value in article.items():
-        print(f"{key}: {value}\n")
+    # Example URLs (replace with real ones)
+    urls = [
+        "https://n.news.naver.com/article/001/0000000000",
+        "https://n.news.naver.com/article/001/0000000001",
+    ]
+    articles = crawl_articles(urls)
+    save_to_csv(articles, "articles.csv")
+    print("Saved articles to articles.csv")
 
 
 if __name__ == "__main__":
